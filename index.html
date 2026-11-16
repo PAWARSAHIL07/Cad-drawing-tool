@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Versigent — Harness Connector Layout Tool</title>
+<link rel="icon" href="logo.png" type="image/png" />
+<link rel="stylesheet" href="styles.css" />
+<!-- SheetJS for Excel parsing, served from a public CDN -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="logo.png" alt="Versigent" class="logo" />
+    <span class="brand-sep"></span>
+    <span class="brand-sub">Harness Connector Layout Tool</span>
+  </div>
+  <div class="topbar-tag">
+    <span class="dot"></span> Runs entirely in your browser — your files never leave this device
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="card step" id="step-1">
+    <div class="step-head">
+      <span class="step-num">1</span>
+      <h2>Upload your Excel cutting plan</h2>
+      <span class="step-hint">.xlsx · .xls · .csv</span>
+    </div>
+    <div class="dropzone" id="drop-excel" tabindex="0">
+      <input type="file" id="file-excel" accept=".xlsx,.xls,.csv" hidden />
+      <div class="dz-empty">
+        <div class="dz-icon">📊</div>
+        <p><strong>Drop your Excel cutting plan here</strong></p>
+        <p class="dz-sub">or <span class="link">browse files</span></p>
+      </div>
+      <div class="dz-filled" hidden>
+        <div class="dz-icon ok">✓</div>
+        <div class="dz-info">
+          <p class="dz-name" id="excel-name">—</p>
+          <p class="dz-meta" id="excel-meta">—</p>
+        </div>
+        <button class="btn-text" id="excel-clear" title="Remove">✕</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card step" id="step-2">
+    <div class="step-head">
+      <span class="step-num">2</span>
+      <h2>Upload your 2D drawing (exported as DXF)</h2>
+      <span class="step-hint">.dxf</span>
+    </div>
+    <div class="dropzone" id="drop-dxf" tabindex="0">
+      <input type="file" id="file-dxf" accept=".dxf" hidden />
+      <div class="dz-empty">
+        <div class="dz-icon">📐</div>
+        <p><strong>Drop your DXF drawing here</strong></p>
+        <p class="dz-sub">or <span class="link">browse files</span> · use <code>DXFOUT</code> in AutoCAD/BricsCAD to create it</p>
+      </div>
+      <div class="dz-filled" hidden>
+        <div class="dz-icon ok">✓</div>
+        <div class="dz-info">
+          <p class="dz-name" id="dxf-name">—</p>
+          <p class="dz-meta" id="dxf-meta">—</p>
+        </div>
+        <button class="btn-text" id="dxf-clear" title="Remove">✕</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card step advanced" id="step-3">
+    <button class="adv-toggle" id="adv-toggle" aria-expanded="false">
+      <span class="caret">▶</span>
+      <h3>Advanced settings</h3>
+      <span class="adv-sub">optional — defaults work for most users</span>
+    </button>
+    <div class="adv-body" id="adv-body" hidden>
+      <div class="form-row" id="f-sheet-wrap" style="display:none">
+        <label for="f-sheet">Sheet</label>
+        <select id="f-sheet" disabled><option>—</option></select>
+        <small>The Excel workbook has multiple sheets. Pick the one that holds the cutting plan.</small>
+      </div>
+      <div class="form-row">
+        <label for="f-col">Position column</label>
+        <select id="f-col" disabled><option>Upload Excel first</option></select>
+        <small>The Excel column that holds your position names (POS-01, CONN-A1, …).</small>
+      </div>
+      <div class="form-row form-row-2">
+        <div>
+          <label for="f-sw">Slot width (mm)</label>
+          <input type="number" id="f-sw" value="60" min="10" max="500" />
+        </div>
+        <div>
+          <label for="f-sh">Slot height (mm)</label>
+          <input type="number" id="f-sh" value="50" min="10" max="500" />
+        </div>
+      </div>
+      <div class="form-row form-row-3">
+        <div>
+          <label for="f-below">Search below (mm)</label>
+          <input type="number" id="f-below" value="50" min="0" max="500" />
+        </div>
+        <div>
+          <label for="f-lr">Search left/right (mm)</label>
+          <input type="number" id="f-lr" value="100" min="0" max="500" />
+        </div>
+        <div>
+          <label for="f-gap">Gap between cells (mm)</label>
+          <input type="number" id="f-gap" value="10" min="0" max="200" />
+        </div>
+      </div>
+      <button class="btn-text" id="adv-reset">Reset to defaults</button>
+    </div>
+  </section>
+
+  <section class="card step actions" id="step-4">
+    <div class="step-head">
+      <span class="step-num">4</span>
+      <h2>Automate</h2>
+    </div>
+    <button class="btn-primary" id="btn-run" disabled>
+      <span class="btn-label">Upload both files first</span>
+    </button>
+    <p class="run-status" id="run-status"></p>
+  </section>
+
+  <section class="card results" id="results" hidden>
+    <div class="step-head">
+      <span class="step-num">✓</span>
+      <h2>Result</h2>
+    </div>
+
+    <div class="results-summary" id="results-summary"></div>
+
+    <div class="results-actions">
+      <button class="btn-primary" id="btn-download">
+        <span class="btn-label">Download output.dxf</span>
+      </button>
+      <button class="btn-secondary" id="btn-restart">Start over</button>
+    </div>
+
+    <div class="preview-tabs">
+      <button class="tab active" data-tab="output">Output preview</button>
+      <button class="tab" data-tab="source">Source preview</button>
+    </div>
+    <div class="preview-wrap">
+      <canvas id="preview-canvas" width="900" height="600"></canvas>
+      <p class="preview-hint" id="preview-hint">Original drawing + new row of connector tables added below. Red marks show block insertion points (visible only here, not in AutoCAD).</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div>
+    <strong>Versigent</strong> · Harness Connector Layout Tool
+  </div>
+  <div class="footer-right">
+    Static · Browser-only · Zero install · v1.0
+  </div>
+</footer>
+
+<script src="dxf-parser.js"></script>
+<script src="dxf-writer.js"></script>
+<script src="automate.js"></script>
+<script src="preview.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
